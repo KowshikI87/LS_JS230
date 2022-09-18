@@ -1,0 +1,1 @@
+let ulElement = document.querySelector("ul").classList.add('bulleted');
