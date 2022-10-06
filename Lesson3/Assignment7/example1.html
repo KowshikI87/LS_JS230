@@ -1,0 +1,65 @@
+<h1>XMLHttpRequest</h1>
+<p>
+  <label><input type="checkbox" id="extraEvents"> Show <code>progress</code> and <code>readystatechange</code> events</label>
+</p>
+<p>
+  <button id="successButton">Successful Request</button>
+  <button id="errorButton">Server Error</button>
+  <button id="redirectButton">Redirect</button>
+  <button id="timeoutButton">Timeout</button>
+  <button id="networkButton">Network Error</button>
+</p>
+
+<table>
+  <thead>
+    <th class="ms">ms</th>
+    <th>Event</th>
+    <th><code>readyState</code></th>
+    <th>description</th>
+    <th><code>length</code></th>
+    <th><code>responseText</code></th>
+  </thead>
+  <tbody id="output">
+  </tbody>
+</table>
+
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title> Example1 </title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="example1.css">
+  </head>
+  <body>
+    <script src="example1.js"></script>
+    <main>
+      <h1>XMLHttpRequest</h1>
+      <p>
+        <label><input type="checkbox" id="extraEvents"> Show <code>progress</code> and <code>readystatechange</code> events</label>
+      </p>
+      <p>
+        <button id="successButton">Successful Request</button>
+        <button id="errorButton">Server Error</button>
+        <button id="redirectButton">Redirect</button>
+        <button id="timeoutButton">Timeout</button>
+        <button id="networkButton">Network Error</button>
+      </p>
+
+      <table>
+        <thead>
+          <th class="ms">ms</th>
+          <th>Event</th>
+          <th><code>readyState</code></th>
+          <th>description</th>
+          <th><code>length</code></th>
+          <th><code>responseText</code></th>
+        </thead>
+        <tbody id="output">
+        </tbody>
+      </table>
+    </main>
+  </body>
+</html>

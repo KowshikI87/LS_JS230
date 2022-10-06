@@ -1,0 +1,42 @@
+<body>
+  <style>
+    .x {
+      position: absolute;
+      transform: rotate(45deg);
+      top: 20px;
+      left: 20px;
+    }
+
+    .x .horizontal {
+      width: 45px;
+      height: 5px;
+      position: absolute;
+      left: -20px;
+      background: red;
+    }
+
+    .x .vertical {
+      height: 45px;
+      width: 5px;
+      background: red;
+      position: absolute;
+      left: 0px;
+      top: -20px;
+    }
+  </style>
+  <script>
+    //adding the listener to the div element with class
+    //of x does not work
+    document.addEventListener('click', event => {
+      let x = document.querySelector('.x');
+      //I did not know that I had to change the CSS style
+      //of x class
+      x.style.left = String(event.clientX) + 'px';
+      x.style.top = String(event.clientY) + 'px';
+    });
+  </script>
+  <div class="x">
+    <div class="horizontal"></div>
+    <div class="vertical"></div>
+  </div> 
+</body>
