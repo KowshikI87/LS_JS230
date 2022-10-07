@@ -8,6 +8,6 @@ function walk(node, callback) {
 
 walk(document, node => {
   if (node instanceof HTMLAnchorElement) {
-    node.style.color = 'red'; //did not know about style.color
+    node.style.color = 'red';
   }
 });
