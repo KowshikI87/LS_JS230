@@ -1,0 +1,7 @@
+> console.log(document.querySelector('span.emphasis').parentNode.tagName);
+= 'FOOTER'
+
+we have a span element inside footer and it has a class called emphasis
+
+I don't know where LS solution is getting the part about "Notes" being the text
+for this span element

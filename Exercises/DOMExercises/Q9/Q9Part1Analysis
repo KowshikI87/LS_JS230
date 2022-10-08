@@ -1,0 +1,9 @@
+<!-- > console.log(document.head.childNodes.length);
+= 3
+> console.log(document.head.children[0].tagName);
+= 'TITLE'
+> console.log(document.head.textContent);
+= "
+      Title
+    " -->
+<!-- we have a title tag with its value = Title -->

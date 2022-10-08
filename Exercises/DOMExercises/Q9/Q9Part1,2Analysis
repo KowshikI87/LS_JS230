@@ -1,0 +1,48 @@
+<!-- > console.log(document.body.children.length);
+= 3
+
+==> 3 child elements [SATISFIED]
+
+---------------------------------------------
+
+> console.log(document.body.childNodes.length);
+= 5
+
+==> 5 child nodes (includes text nodes)
+
+Had to move up the starting of some of the tags
+so we don't have extra empty text nodes; USED DOM Visualizer and LS
+solution for help
+
+[satisfied]
+
+
+---------------------------------------------
+
+> console.log(document.querySelector('div').parentNode.parentNode.tagName);
+= 'BODY'
+
+==> we have a div element inside "body" at level 3. div > node > body (reverse order)
+
+look at boiler plate HTML in JS189 notes to figure out that we need 
+"header", "main", "footer" inside "body"
+
+[SATISFIED]
+
+---------------------------------------------
+
+> console.log(document.querySelector('div section').children[2].nextElementSibling);
+= null
+
+==> the div element has a "section" element. the section element has 3 children
+
+-----------------------------------------------------------------
+
+> console.log(document.querySelectorAll('div').length);
+= 1 
+
+==> we only have one div element
+
+[SATISFIED]
+-->
+

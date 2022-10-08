@@ -1,0 +1,54 @@
+
+// new element node with header of "header"
+const node1 = document.createElement('header');
+// create a new text node which's content = "Dynamic Content"
+const node2 = document.createTextNode('Dynamic Content');
+
+// set the content of header element to <p>Hello World!<p>
+node1.innerHTML = '<p>Hello World!</p>';
+//insert header into body (which is empty till this oint)
+document.body.appendChild(node1);
+
+//document.body.firstElementChild ==> header element or node1
+//node1.firstElementChild = '<p>Hello World!</p>'
+//syntax for insertBefore: // parent.insertBefore(node, targetNode)
+//the element will be inserted into document.body.firstElementChild
+//so insert <p>Dynamic Content<p> before '<p>Hello World!</p>' in the header tag
+document.body.firstElementChild.insertBefore(node2, node1.firstElementChild);
+
+//create a h1 element
+const node3 = document.createElement('h1');
+//add node2 (text node with "Dynamic Content") to node3
+//final result is: <h1> Dynamic Content <h1>
+
+//I did not catch this part: "Dynamic Content" removed from DOM
+//and moved to node3
+node3.appendChild(node2);
+
+//document.body.firstElementChild --> header
+//node1.firstElementChild --> the node  '<p>Hello World!</p>'
+//we insert node3 into body > header before the the node  '<p>Hello World!</p>'
+document.body.firstElementChild.insertBefore(node3, node1.firstElementChild);
+
+//add id of "header" to body > header
+node1.setAttribute('id', 'header');
+//add the class emphasis and light to node3
+node3.classList.add('emphasis');
+node3.classList.add('light');
+
+//add CSS style to node4 and adds to the end of document.head
+
+//create a "style" element
+const node4 = document.createElement('style');
+
+//css properties
+const css1 = ".emphasis { font-weight: bold; }";
+const css2 = ".light { color: gray; }";
+node4.type = 'text/css';
+
+//we create two text node using css1 and css2
+//and append them to node4
+node4.appendChild(document.createTextNode(css1));
+node4.appendChild(document.createTextNode(css2));
+//add node4 to end of document.head
+document.head.appendChild(node4);
