@@ -1,7 +1,55 @@
 /* eslint-disable max-len */
 /* eslint-disable max-lines-per-function */
-const Autocomplete = {
-  wrapInput: function() {
+import debounce from './debounce.js';
+class Autocomplete {
+  constructor(input, url) {
+    this.input = input;
+    this.url = url;
+
+    //instead of calling "reset" function
+    //we are doing the resetting manually here
+    //which makes sense
+    this.listUI = null;
+    this.overlay = null;
+    this.visible = false;
+    this.matches = [];
+    this.selectedIndex = null;
+    this.previousValue = null;
+    this.bestMatchIndex = null;
+
+    this.wrapInput();
+    this.createUI();
+    //the end goal of debounce is this
+    //we delay each call to valueChanged by 3 seconds
+    //if within this 3 seconds, we change the value of input box again
+    //which will trigger this.valueChanged again, we discard previous calls
+    //to this.valueChanged
+
+    //so if we start typing into input box: "can" quickly, instead of having
+    //sent 3 request (because 3 characters), we will just send one request
+    this.valueChanged = debounce(this.valueChanged.bind(this), 300);
+    this.bindEvents();
+  }
+
+  bindEvents() {
+    //input event is when the value of an input element
+    //is changed
+    //reference: https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/input_event
+
+    //we call a callback and make sure that callback's execution
+    //context is the Autocomplete object
+    this.input.addEventListener('input', this.valueChanged);
+    //this handles the event when we press key while being inside the input box
+    //keydown event is fired when a key is pressed
+    this.input.addEventListener('keydown', this.handleKeydown.bind(this));
+
+    //event fired when we click a mouse button
+    //does not matter which button we clicked: left button, right button
+    //or middle button
+    this.listUI.addEventListener('mousedown', this.handleMousedown.bind(this));
+  }
+
+  wrapInput() {
     //creates a new div element
     //and puts the "input" element inside it
     //as child element
@@ -9,9 +57,9 @@ const Autocomplete = {
     wrapper.classList.add('autocomplete-wrapper');
     this.input.parentNode.appendChild(wrapper);
     wrapper.appendChild(this.input);
-  },
+  }
 
-  createUI: function() {
+  createUI() {
     //creates a ul element
     //that is right after the input box element
     //I think this one is used to populate list
@@ -29,27 +77,84 @@ const Autocomplete = {
 
     this.input.parentNode.appendChild(overlay);
     this.overlay = overlay;
-  },
+  }
 
-  bindEvents: function() {
-    //input event is when the value of an input element
-    //is changed
-    //reference: https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/input_event
+  //puts the list of matching countries
+  //in the this.Ul element
+  draw() {
+    //removes matches from previous search
+    while (this.listUI.lastChild) {
+      this.listUI.removeChild(this.listUI.lastChild);
+    }
 
-    //we call a callback and make sure that callback's execution
-    //context is the Autocomplete object
-    this.input.addEventListener('input', this.valueChanged.bind(this));
-    //this handles the event when we press key while being inside the input box
-    //keydown event is fired when a key is pressed
-    this.input.addEventListener('keydown', this.handleKeydown.bind(this));
+    //if "visible" is false then don't overlay anything
 
-    //event fired when we click a mouse button
-    //does not matter which button we clicked: left button, right button
-    //or middle button
-    this.listUI.addEventListener('mousedown', this.handleMousedown.bind(this));
-  },
+    //I think "visible" = false ==> there is nothing typed in the
+    //input box
+    if (!this.visible) {
+      this.overlay.textContent = '';
+      return;
+    }
 
-  handleKeydown: function(event) {
+    //if the condition below is met (which is really equivalent to input field not empty)
+    //then we put the first country in the list of matches as the overlay content
+    if (this.bestMatchIndex !== null && this.matches.length !== 0) {
+      let selected = this.matches[this.bestMatchIndex];
+      this.overlay.textContent = this.generateOverlayContent(this.input.value, selected);
+    } else {
+      this.overlay.textContent = '';
+    }
+
+    //adds the list of matching countries as li element
+    //then appends the li element to the this.listUI element
+    this.matches.forEach((match, index) => {
+      let li = document.createElement('li');
+      li.classList.add('autocomplete-ui-choice');
+
+      //if the current element's index = selectedIndex
+      //then we use a differnet class that gives the illusion that this current item
+      //is selected
+      if (index === this.selectedIndex) {
+        li.classList.add('selected');
+        this.input.value = match.name;
+      }
+
+      li.textContent = match.name;
+      this.listUI.appendChild(li);
+    });
+  }
+
+  //I don't fully understand this but that is fine for now
+  //its not a big deal to not understand this issue
+  generateOverlayContent(value, match) {
+    let end = match.name.substr(value.length);
+    return value + end;
+  }
+
+  //takes two arguments; query (value of input box)
+  //and a callback
+  fetchMatches(query, callback) {
+    let request = new XMLHttpRequest();
+
+    //when the response has returned we call the callback
+    //and pass request.response to it; the callback just sets
+    //the matching list of country = object.matches
+
+    //recall that request.response contains an array of objects
+    //each object has two keys: id and name (name of the country)
+    request.addEventListener('load', () => {
+      callback(request.response);
+    });
+
+    //submits a get request to a url
+    //the URL looks like this: /countries?matching=query
+    //where query is the value of the query variable passed
+    request.open('GET', `${this.url}${encodeURIComponent(query)}`);
+    request.responseType = 'json';
+    request.send();
+  }
+
+  handleKeydown(event) {
     switch (event.key) {
       case 'ArrowDown':
         //I am not sure why event.preventDefault() is necessary
@@ -109,14 +214,37 @@ const Autocomplete = {
         this.reset();
         break;
     }
-  },
+  }
+
+  //pretty self explanatory
+  //we first get the element we clicked on
+  //then we let input box = that element's text content
+  handleMousedown(event) {
+    let element = event.target;
+    this.input.value = element.textContent;
+    this.reset();
+  }
+
+  reset() {
+    //vislbe = false ==> don't have anything in overlay content
+    this.visible = false;
+    //clear this.matches (list of matching countries)
+    this.matches = [];
+    //bestMatchIndex is used to determine what to put in overlay content
+    this.bestMatchIndex = null;
+    this.selectedIndex = null;
+    this.previousValue = null;
+
+    this.draw();
+  }
+
   //if the input length is not zero
   //then we call fetchMatches to get list
   //of countries based on the input
 
   //otherwise, we call the reset function
   //to reset the app
-  valueChanged: function() {
+  valueChanged() {
     let value = this.input.value;
     this.previousValue = value;
 
@@ -139,121 +267,10 @@ const Autocomplete = {
     } else {
       this.reset();
     }
-  },
-
-  //puts the list of matching countries
-  //in the this.Ul element
-  draw: function() {
-    //removes matches from previous search
-    while (this.listUI.lastChild) {
-      this.listUI.removeChild(this.listUI.lastChild);
-    }
-
-    //if "visible" is false then don't overlay anything
-
-    //I think "visible" = false ==> there is nothing typed in the
-    //input box
-    if (!this.visible) {
-      this.overlay.textContent = '';
-      return;
-    }
-
-    //if the condition below is met (which is really equivalent to input field not empty)
-    //then we put the first country in the list of matches as the overlay content
-    if (this.bestMatchIndex !== null && this.matches.length !== 0) {
-      let selected = this.matches[this.bestMatchIndex];
-      this.overlay.textContent = this.generateOverlayContent(this.input.value, selected);
-    } else {
-      this.overlay.textContent = '';
-    }
-
-    //adds the list of matching countries as li element
-    //then appends the li element to the this.listUI element
-    this.matches.forEach((match, index) => {
-      let li = document.createElement('li');
-      li.classList.add('autocomplete-ui-choice');
-
-      //if the current element's index = selectedIndex
-      //then we use a differnet class that gives the illusion that this current item
-      //is selected
-      if (index === this.selectedIndex) {
-        li.classList.add('selected');
-        this.input.value = match.name;
-      }
-
-      li.textContent = match.name;
-      this.listUI.appendChild(li);
-    });
-  },
-
-  //I don't fully understand this but that is fine for now
-  //its not a big deal to not understand this issue
-  generateOverlayContent: function(value, match) {
-    let end = match.name.substr(value.length);
-    return value + end;
-  },
-
-
-  //takes two arguments; query (value of input box)
-  //and a callback
-  fetchMatches: function(query, callback) {
-    let request = new XMLHttpRequest();
-
-    //when the response has returned we call the callback
-    //and pass request.response to it; the callback just sets
-    //the matching list of country = object.matches
-
-    //recall that request.response contains an array of objects
-    //each object has two keys: id and name (name of the country)
-    request.addEventListener('load', () => {
-      callback(request.response);
-    });
-
-    //submits a get request to a url
-    //the URL looks like this: /countries?matching=query
-    //where query is the value of the query variable passed
-    request.open('GET', `${this.url}${encodeURIComponent(query)}`);
-    request.responseType = 'json';
-    request.send();
-  },
-
-  reset: function() {
-    //vislbe = false ==> don't have anything in overlay content
-    this.visible = false;
-    //clear this.matches (list of matching countries)
-    this.matches = [];
-    //bestMatchIndex is used to determine what to put in overlay content
-    this.bestMatchIndex = null;
-    this.selectedIndex = null;
-    this.previousValue = null;
-
-    this.draw();
-  },
-
-  //pretty self explanatory
-  //we first get the element we clicked on
-  //then we let input box = that element's text content
-  handleMousedown: function(event) {
-    let element = event.target;
-    this.input.value = element.textContent;
-    this.reset();
-  },
-
-  init: function() {
-    this.input = document.querySelector('input');
-    this.url = '/countries?matching=';
-
-    this.listUI = null;
-    this.overlay = null;
-
-    this.wrapInput();
-    this.createUI();
-    this.bindEvents();
-
-    this.reset();
   }
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-  Autocomplete.init();
+  let input = document.querySelector('input');
+  let autocomplete = new Autocomplete(input, "/countries?matching=");
 });
