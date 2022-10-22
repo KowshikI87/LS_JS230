@@ -33,21 +33,26 @@ function convertStaffIdsToNames(schedules, staffs) {
   return schedules;
 }
 
+//data is an object containing email and booking sequence number
 function showBookingTemplate(data) {
+  //creates the form element for typing in student's data
   const newStudentForm = document.createElement('form');
   newStudentForm.setAttribute('method', 'post');
   newStudentForm.setAttribute('action', '/api/students');
   newStudentForm.setAttribute('id', 'newStudentForm');
 
+  //Header Element: Please provide new student details
   const h1 = document.createElement('h1');
   h1.textContent = 'Please provide new student details';
   newStudentForm.appendChild(h1);
 
+  //Label for Email input field
   const emailLabel = document.createElement('label');
   emailLabel.textContent = 'Email:';
   emailLabel.setAttribute('for', 'email');
   newStudentForm.appendChild(emailLabel);
 
+  //The input field for Email
   const emailInput = document.createElement('input');
   emailInput.setAttribute('type', 'email');
   emailInput.setAttribute('name', 'email');
@@ -56,11 +61,13 @@ function showBookingTemplate(data) {
   newStudentForm.appendChild(emailInput);
   newStudentForm.appendChild(document.createElement('br'));
 
+  //Label for Name field
   const nameLabel = document.createElement('label');
   nameLabel.textContent = 'Name:';
   nameLabel.setAttribute('for', 'name');
   newStudentForm.appendChild(nameLabel);
 
+  //Input field for Name
   const nameInput = document.createElement('input');
   nameInput.setAttribute('type', 'text');
   nameInput.setAttribute('name', 'name');
@@ -68,11 +75,13 @@ function showBookingTemplate(data) {
   newStudentForm.appendChild(nameInput);
   newStudentForm.appendChild(document.createElement('br'));
 
+  //Label for booking sequence
   const bookingSequenceLabel = document.createElement('label');
   bookingSequenceLabel.textContent = 'Booking Sequence:';
   bookingSequenceLabel.setAttribute('for', 'booking_sequence');
   newStudentForm.appendChild(bookingSequenceLabel);
 
+  //The input box for booking sequence
   const bookingSequenceInput = document.createElement('input');
   bookingSequenceInput.setAttribute('type', 'text');
   bookingSequenceInput.setAttribute('name', 'booking_sequence');
@@ -81,14 +90,19 @@ function showBookingTemplate(data) {
   newStudentForm.appendChild(bookingSequenceInput);
   newStudentForm.appendChild(document.createElement('br'));
 
+  //The submit button for submitting the form
   const submitInput = document.createElement('input');
   submitInput.setAttribute('type', 'submit');
   newStudentForm.appendChild(submitInput);
+
+  //adds the new student from to the "body" element
   document.querySelector('body').appendChild(newStudentForm);
 }
 
 function formDataToJson(formData) {
   const json = {};
+  //formData.entries() iterates through the key:value pair
+  //pair[0] is the key and pair[1] is the value
   for (const pair of formData.entries()) {
     json[pair[0]] = pair[1];
   }
@@ -127,8 +141,17 @@ document.addEventListener("DOMContentLoaded", event => {
     });
   })();
 
+  //if you click on "submit" on this form
+  //without first clicking on "submit" in the student form
+  //(when it pops up for a new student) then we will again error of
+  //student not found and then another form for student will pop up
   form.addEventListener('submit', event => {
     event.preventDefault();
+    //formData contains key:value pair
+    //the key is the "name" attribute of the input field
+    //the value is the actual value in the input field
+    //note that for select element, value = the value attribute
+    //of selected option element
     const formData = new FormData(form);
     const json = JSON.stringify(formDataToJson(formData));
     const xhr = new XMLHttpRequest();
@@ -141,13 +164,21 @@ document.addEventListener("DOMContentLoaded", event => {
       switch (xhr.status) {
         case 204:
           alert('Booked');
-          window.location.href = "/ex5.html";
+          //redirects back to exercises/q5.html
+          //I think it just creates the refresh effect
+          //so we fire off the dom content loaded event again
+          //which makes sense because now the list of available
+          //schedules are diffrent after booking is completed
+          window.location.href = "/exercises/q5.html";
           break;
         case 404:
           alert(xhr.responseText);
 
           {
             let bookingSequence = xhr.responseText.split(':')[1].trim();
+            //form['student_email'] gets access to the input box
+            //with id = student_email. Then we use ".value" to retrieve the
+            //value in the input box
             showBookingTemplate({email: form['student_email'].value, bookingSequence});
           }
 
@@ -165,8 +196,17 @@ document.addEventListener("DOMContentLoaded", event => {
             xhr2.addEventListener('load', event => {
               alert(xhr2.responseText);
               if (xhr2.status === 201) {
+                //The HTMLFormElement.reset() method restores a form
+                //element's default values
+                //https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormElement/reset
                 newStudentForm.reset();
+                //sets student_email field in the schedules form
+                //to the value we typed into the form with title
+                //"Please provide new student details"
+                //see first response in the exercise to see what
+                //this line needs to be
                 formData.set('student_email', formData2.get('email'));
+                //dispatches/triggers the submit event for the main form
                 form.dispatchEvent(new Event('submit', { cancelable: true }));
               }
             });
